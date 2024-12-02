@@ -1,0 +1,14 @@
+
+State Machine - |final|snake_direction
+Name snake_direction.d_right snake_direction.d_left snake_direction.d_down snake_direction.d_up 
+snake_direction.d_up 0 0 0 0 
+snake_direction.d_down 0 0 1 1 
+snake_direction.d_left 0 1 0 1 
+snake_direction.d_right 1 0 0 1 
+
+State Machine - |final|state
+Name state.s_game_over state.s_refresh_led_matrix state.s_update_snake state.s_update_map 
+state.s_refresh_led_matrix 0 0 0 0 
+state.s_update_snake 0 1 1 0 
+state.s_update_map 0 1 0 1 
+state.s_game_over 1 1 0 0 

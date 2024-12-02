@@ -1,0 +1,153 @@
+// snake
+// led state: empty (dark), snake (light), food (blink), 1 led: 2 bits
+// map: 16 * 16 * led = 16 * 16 * 2 bits
+// food position: 8 bits, snake position: 256 * 8 bits
+// ticks: 0.5 s = 2 Hz, led matrix refresh = clk: 2048 Hz = 2^(-11) s, food blink: 4 Hz = 0.25 s
+
+module final (
+    input 
+        clk, // posedge
+        rst, // pos level
+        up, down, left, right, // snake direction
+    output reg [0:15] led_row, led_col,
+    output reg [7:0] lcd_db,
+    output reg
+        lcd_rs, // 0: command, 1: data
+        lcd_rw, // 0: write, 1: X
+        lcd_en, // 1 -> 0
+    output
+        lcd_rst // 1: clear
+);
+    parameter // i means instruction
+        i_hide_cursor = 8'b11111100,
+        i_show_cursor = 8'b11111101,
+        i_show_cursor_flash = 8'b11111111,
+        i_flash_character = 8'b11111011,
+        i_invert_character = 8'b11110111,
+        i_default_character = 8'b11101111;
+
+    reg [4:0] state;
+    parameter // s means state
+        s_reset = 0,
+        s_refresh_led_matrix = 1,
+        s_prepare_data = 2,
+        s_update_snake = 3,
+        s_update_map = 4,
+        s_game_over = 5,
+        s_game_win = 6;
+
+    reg [9:0] counter;
+    reg [1:0] map [0:255]; // 0: empty, 1: snake, 2: food
+    reg [7:0] snake [0:255]; // 0 (head) ~ snake_length - 1 (tail)
+    reg [7:0] snake_length;
+    reg [7:0] food;
+    wire [7:0] snake_head; assign snake_head = snake[0];
+    wire [7:0] snake_next_head; assign snake_next_head =
+        snake_direction == d_up ? snake_head - 16 :
+        snake_direction == d_down ? snake_head + 16 :
+        snake_direction == d_left ? snake_head - 1 :
+        snake_direction == d_right ? snake_head + 1 : 8'bxxxxxxxx;
+    wire [7:0] snake_neck; assign snake_neck = snake[1];
+    wire [7:0] snake_tail; assign snake_tail = snake[snake_length - 1];
+
+    reg [1:0] snake_direction;
+    parameter // snake direction
+        d_up = 0,
+        d_down = 1,
+        d_left = 2,
+        d_right = 3;
+
+    integer i, j;
+
+    always @(posedge clk) begin
+        if (rst) begin
+            snake_length <= 5;
+            snake[0] <= 128;
+            snake[1] <= 129;
+            snake[2] <= 130;
+            snake[3] <= 131;
+            snake[4] <= 132;
+            food <= 190;
+            counter <= 0;
+            state <= s_refresh_led_matrix;
+            snake_direction <= d_up;
+            for (i = 0; i < 16; i = i + 1) // clear map
+                for (j = 0; j < 16; j = j + 1)  
+                    map[i * 16 + j] <= 0;
+        end
+        else begin
+
+            case (state)
+                s_refresh_led_matrix: begin
+                    led_row <= 16'b1000000000000000 >> counter[3:0];
+                    for (i = 0; i < 16; i = i + 1) begin
+                        case (map[counter[3:0] * 16 + i])
+                            0: led_col[i] <= 0; // empty, dark
+                            1: led_col[i] <= 1; // snake, light
+                            2: led_col[i] <= counter[9]; // food, blink
+                        endcase
+                    end
+                    counter <= counter + 1;
+
+                    // change direction, prevent go back (head go to neck)
+                    if (snake_length == 1 || snake_next_head != snake_neck) begin
+                        if (up) snake_direction <= d_up;
+                        else if (down) snake_direction <= d_down;
+                        else if (left) snake_direction <= d_left;
+                        else if (right) snake_direction <= d_right;
+                    end
+
+                    if (counter == 0) begin
+                        if (
+                            // if bump into wall 
+                            (snake_direction == d_up && snake_head < 16) ||
+                            (snake_direction == d_down && snake_head > 239) ||
+                            (snake_direction == d_left && snake_head % 16 < 1) ||
+                            (snake_direction == d_right && snake_head % 16 > 14) ||
+                            // or eat itself
+                            (map[snake_next_head] == 1 && snake_next_head != snake_tail)
+                        ) state <= s_game_over; // then game over
+                        else if (map[snake_next_head] == 2) begin // eat food
+                            state <= s_update_snake;
+                            snake_length <= snake_length + 1;
+
+                        end
+                        else begin // normal move
+                            state <= s_update_snake;
+                            map[snake_tail] <= 0; // erase tail
+                        end
+                    end
+                end
+                s_update_snake: begin
+                    snake[0] <= snake_next_head; // update snake head
+                    for (i = 1; i < 256; i = i + 1) begin
+                        snake[i] <= snake[i - 1]; // update snake body
+                    end
+
+                    map[snake_next_head] <= 1; // draw new head
+                    map[food] <= 2;
+
+                    
+                    state <= s_update_map;
+                end
+                s_update_map: begin
+                    state <= s_refresh_led_matrix;
+                end
+                s_game_over: begin
+                    led_row <= 16'b1000000000000000 >> counter[3:0];
+                    for (i = 0; i < 16; i = i + 1) begin
+                        case (map[counter[3:0] * 16 + i])
+                            0: led_col[i] <= 0; // empty, dark
+                            1: led_col[i] <= 1; // snake, light
+                            2: led_col[i] <= counter[9]; // food, blink
+                        endcase
+                    end
+                    counter <= counter + 1;
+                    for (i = 0; i < 16; i = i + 1)
+                        for (j = 0; j < 16; j = j + 1)  
+                            map[i * 16 + j] <= 2;
+                end
+            endcase
+        end
+    end
+endmodule

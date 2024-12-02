@@ -1,0 +1,128 @@
+Version 9.0 Build 132 02/25/2009 SJ Web Edition
+41
+2978
+OFF
+OFF
+OFF
+ON
+ON
+ON
+FV_OFF
+Level2
+0
+0
+VRSM_ON
+VHSM_ON
+0
+-- Start Library Paths --
+-- End Library Paths --
+-- Start VHDL Libraries --
+-- End VHDL Libraries --
+# entity
+final
+# storage
+db|final.(0).cnf
+db|final.(0).cnf
+# logic_option {
+AUTO_RAM_RECOGNITION
+ON
+}
+# case_sensitive
+# source_file
+final.v
+8fc6a4e3c81b84cb6c656236f58f94f6
+8
+# internal_option {
+HDL_INITIAL_FANOUT_LIMIT
+OFF
+AUTO_RESOURCE_SHARING
+OFF
+AUTO_RAM_RECOGNITION
+ON
+AUTO_ROM_RECOGNITION
+ON
+IGNORE_VERILOG_INITIAL_CONSTRUCTS
+OFF
+VERILOG_CONSTANT_LOOP_LIMIT
+5000
+VERILOG_NON_CONSTANT_LOOP_LIMIT
+300
+}
+# user_parameter {
+i_hide_cursor
+11111100
+PARAMETER_UNSIGNED_BIN
+DEF
+i_show_cursor
+11111101
+PARAMETER_UNSIGNED_BIN
+DEF
+i_show_cursor_flash
+11111111
+PARAMETER_UNSIGNED_BIN
+DEF
+i_flash_character
+11111011
+PARAMETER_UNSIGNED_BIN
+DEF
+i_invert_character
+11110111
+PARAMETER_UNSIGNED_BIN
+DEF
+i_default_character
+11101111
+PARAMETER_UNSIGNED_BIN
+DEF
+s_reset
+0
+PARAMETER_SIGNED_DEC
+DEF
+s_refresh_led_matrix
+1
+PARAMETER_SIGNED_DEC
+DEF
+s_prepare_data
+2
+PARAMETER_SIGNED_DEC
+DEF
+s_update_snake
+3
+PARAMETER_SIGNED_DEC
+DEF
+s_update_map
+4
+PARAMETER_SIGNED_DEC
+DEF
+s_game_over
+5
+PARAMETER_SIGNED_DEC
+DEF
+s_game_win
+6
+PARAMETER_SIGNED_DEC
+DEF
+d_up
+0
+PARAMETER_SIGNED_DEC
+DEF
+d_down
+1
+PARAMETER_SIGNED_DEC
+DEF
+d_left
+2
+PARAMETER_SIGNED_DEC
+DEF
+d_right
+3
+PARAMETER_SIGNED_DEC
+DEF
+}
+# hierarchies {
+|
+}
+# macro_sequence
+
+# end
+# complete
+
